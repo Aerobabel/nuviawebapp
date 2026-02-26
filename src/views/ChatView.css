@@ -19,7 +19,7 @@
     flex: 1;
     overflow-y: auto;
     padding: 24px;
-    padding-bottom: 140px;
+    padding-bottom: calc(148px + env(safe-area-inset-bottom, 0px));
     /* Space for input */
     display: flex;
     flex-direction: column;
@@ -126,6 +126,7 @@
     justify-content: center;
     flex-grow: 1;
     text-align: center;
+    padding: 0 24px;
 }
 
 .logo-text-small {
@@ -147,6 +148,7 @@
     font-weight: 500;
     margin-bottom: 8px;
     color: var(--text-primary);
+    line-height: 1.2;
 }
 
 .welcome-subtext {
@@ -513,4 +515,63 @@
 
 .buy-btn:hover {
     background: #0a58a6;
+}
+
+@media (max-width: 768px) {
+    .chat-header {
+        padding: 12px 14px;
+    }
+
+    .chat-header .btn-icon {
+        width: 40px;
+        height: 40px;
+    }
+
+    .tab-pill {
+        padding: 7px 20px;
+        font-size: 13px;
+        max-width: 58vw;
+    }
+
+    .chat-center-content {
+        padding: 0 16px calc(180px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .welcome-text {
+        font-size: 18px;
+    }
+
+    .welcome-subtext {
+        font-size: 13px;
+    }
+
+    .chat-bottom-area {
+        padding: 14px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .quick-actions-scroll {
+        gap: 10px;
+        padding-bottom: 12px;
+        margin-bottom: 6px;
+    }
+
+    .action-pill {
+        padding: 9px 16px;
+        font-size: 12px;
+    }
+
+    .main-input {
+        padding: 10px 12px;
+        gap: 8px;
+    }
+
+    .bare-input {
+        font-size: 15px;
+    }
+
+    .add-btn,
+    .mic-btn {
+        width: 34px;
+        height: 34px;
+    }
 }
