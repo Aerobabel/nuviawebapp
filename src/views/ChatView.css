@@ -518,6 +518,11 @@
 }
 
 @media (max-width: 768px) {
+    .chat-history {
+        padding: 16px 12px;
+        padding-bottom: calc(210px + env(safe-area-inset-bottom, 0px));
+    }
+
     .chat-header {
         padding: 12px 14px;
     }
@@ -534,19 +539,31 @@
     }
 
     .chat-center-content {
-        padding: 0 16px calc(180px + env(safe-area-inset-bottom, 0px));
+        justify-content: center;
+        padding: 0 16px calc(190px + env(safe-area-inset-bottom, 0px));
+    }
+
+    .logo-text-small {
+        font-size: 22px;
+        margin-bottom: 16px;
     }
 
     .welcome-text {
-        font-size: 18px;
+        font-size: 16px;
     }
 
     .welcome-subtext {
-        font-size: 13px;
+        font-size: 12px;
     }
 
     .chat-bottom-area {
-        padding: 14px 12px calc(10px + env(safe-area-inset-bottom, 0px));
+        position: fixed;
+        left: 0;
+        right: 0;
+        width: auto;
+        bottom: calc(8px + env(safe-area-inset-bottom, 0px));
+        padding: 10px 12px calc(8px + env(safe-area-inset-bottom, 0px));
+        z-index: 40;
     }
 
     .quick-actions-scroll {
