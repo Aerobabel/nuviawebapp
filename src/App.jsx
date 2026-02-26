@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import './App.css';
 import AnimatedBackground from './components/AnimatedBackground';
 import { supabase } from './lib/supabase';
-import { loadSessionsFromStorage } from './services/storage';
+import { loadSessionsForUser } from './services/storage';
 import ChatView from './views/ChatView';
 import PaymentView from './views/PaymentView';
 import PhoneAuthView from './views/PhoneAuthView';
@@ -38,17 +38,6 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Reload sessions when returning to chat or creating a new one
-  useEffect(() => {
-    if (currentView === 'chat') {
-      const loaded = loadSessionsFromStorage();
-      setSessions(loaded);
-      if (!currentSessionId) {
-        setCurrentSessionId(loaded[0]?.id || crypto.randomUUID());
-      }
-    }
-  }, [currentView, currentSessionId]);
-
   const handleNewChat = () => {
     setCurrentSessionId(crypto.randomUUID());
     setCurrentView('chat');
@@ -69,9 +58,19 @@ function App() {
     return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Traveler';
   };
 
-  const refreshSessions = useCallback(() => {
-    setSessions(loadSessionsFromStorage());
-  }, []);
+  const refreshSessions = useCallback(async () => {
+    const loaded = await loadSessionsForUser(user?.id || null);
+    setSessions(loaded);
+    setCurrentSessionId((prev) => prev || loaded[0]?.id || crypto.randomUUID());
+  }, [user?.id]);
+
+  // Reload sessions when entering chat or when auth identity changes
+  useEffect(() => {
+    if (currentView === 'chat') {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
+      refreshSessions().catch((err) => console.error('Failed to refresh sessions', err));
+    }
+  }, [currentView, refreshSessions]);
 
   const handleSelectAuth = async (type) => {
     if (type === 'guest') {
@@ -183,6 +182,7 @@ function App() {
               onOpenPayment={handleOpenPayment}
               isSidebarOpen={isSidebarOpen}
               onToggleSidebar={() => setIsSidebarOpen(!isSidebarOpen)}
+              userId={user?.id || null}
               onSessionUpdated={refreshSessions}
             />
           )}

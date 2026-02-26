@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from 'react';
 import DatePicker from '../components/DatePicker';
 import GuestPicker from '../components/GuestPicker';
 import { callTravelBot, historyForServer } from '../services/api';
-import { saveSessionToStorage } from '../services/storage';
+import { loadSessionMessagesFromStorage, saveSessionToStorage } from '../services/storage';
 import './ChatView.css';
 
 const WELCOME_MESSAGE = {
@@ -20,7 +20,7 @@ const isSamePlan = (a, b) =>
     a.image === b.image &&
     a.price === b.price;
 
-export default function ChatView({ sessionId, onOpenTripDetails, onOpenPayment, isSidebarOpen, onToggleSidebar, onSessionUpdated }) {
+export default function ChatView({ sessionId, onOpenTripDetails, onOpenPayment, isSidebarOpen, onToggleSidebar, onSessionUpdated, userId }) {
     const [messages, setMessages] = useState([WELCOME_MESSAGE]);
     const [input, setInput] = useState('');
     const [isLoading, setIsLoading] = useState(false);
@@ -42,28 +42,29 @@ export default function ChatView({ sessionId, onOpenTripDetails, onOpenPayment, 
             setMessages([WELCOME_MESSAGE]);
             return;
         }
-        try {
-            const stored = localStorage.getItem('travel_chat_sessions');
-            if (stored) {
-                const sessions = JSON.parse(stored);
-                if (sessions[sessionId] && sessions[sessionId].messages) {
-                    setMessages(sessions[sessionId].messages);
-                    return;
-                }
-            }
-        } catch (e) {
-            console.error(e);
+        const storedMessages = loadSessionMessagesFromStorage(sessionId);
+        if (storedMessages) {
+            setMessages(storedMessages);
+            return;
         }
         setMessages([WELCOME_MESSAGE]);
     }, [sessionId]);
 
     // Save state whenever messages change
     useEffect(() => {
-        if (messages.length > 1) {
-            saveSessionToStorage(messages, sessionId);
-            onSessionUpdated?.();
-        }
-    }, [messages, sessionId, onSessionUpdated]);
+        let isMounted = true;
+        const persist = async () => {
+            if (messages.length <= 1) return;
+            await saveSessionToStorage(messages, sessionId, userId);
+            if (isMounted) {
+                await onSessionUpdated?.();
+            }
+        };
+        persist().catch((err) => console.error('Failed to persist chat session', err));
+        return () => {
+            isMounted = false;
+        };
+    }, [messages, sessionId, userId, onSessionUpdated]);
 
     /** main dispatcher for server “signals” */
     const handleSignal = (signal, aiText) => {
