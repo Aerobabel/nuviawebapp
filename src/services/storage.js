@@ -21,6 +21,19 @@ const writeLocalSessionsMap = (sessionsMap) => {
 const sortSessions = (sessionsMap) =>
     Object.values(sessionsMap).sort((a, b) => b.timestamp - a.timestamp);
 
+const normalizeMessages = (value) => {
+    if (Array.isArray(value)) return value;
+    if (typeof value === 'string') {
+        try {
+            const parsed = JSON.parse(value);
+            return Array.isArray(parsed) ? parsed : [];
+        } catch {
+            return [];
+        }
+    }
+    return [];
+};
+
 const normalizeTimestamp = (value, fallbackUpdatedAt = '') => {
     if (typeof value === 'number' && Number.isFinite(value)) return value;
 
@@ -37,11 +50,11 @@ const normalizeTimestamp = (value, fallbackUpdatedAt = '') => {
 };
 
 const toLocalSession = (row) => ({
-    id: row.session_id,
-    preview: row.preview || 'New Trip...',
-    timestamp: normalizeTimestamp(row.timestamp, row.updated_at),
-    messages: Array.isArray(row.messages) ? row.messages : [],
-    customTitle: !!row.custom_title,
+    id: row.session_id || row.sessionId || row.id,
+    preview: row.preview || row.title || 'New Trip...',
+    timestamp: normalizeTimestamp(row.timestamp ?? row.updated_at, row.updated_at),
+    messages: normalizeMessages(row.messages),
+    customTitle: !!(row.custom_title ?? row.customTitle),
 });
 
 const toCloudSession = (session, userId) => ({
@@ -62,10 +75,28 @@ const toCloudSessionMinimal = (session, userId) => ({
     updated_at: new Date(session.timestamp || Date.now()).toISOString(),
 });
 
+const resolveUserId = async (userId = null) => {
+    if (userId) return userId;
+    try {
+        const { data, error } = await supabase.auth.getUser();
+        if (error) {
+            console.warn('Unable to resolve auth user for cloud sync', error);
+            return null;
+        }
+        return data?.user?.id || null;
+    } catch (error) {
+        console.warn('Unexpected auth lookup failure for cloud sync', error);
+        return null;
+    }
+};
+
 const upsertSessionsToCloud = async (sessions, userId) => {
     if (!userId || !sessions.length) return;
-    const fullPayload = sessions.map((session) => toCloudSession(session, userId));
-    const minimalPayload = sessions.map((session) => toCloudSessionMinimal(session, userId));
+    const validSessions = sessions.filter((session) => session?.id);
+    if (!validSessions.length) return;
+
+    const fullPayload = validSessions.map((session) => toCloudSession(session, userId));
+    const minimalPayload = validSessions.map((session) => toCloudSessionMinimal(session, userId));
 
     let { error } = await supabase
         .from('chat_sessions')
@@ -131,7 +162,8 @@ export const saveSessionToStorage = async (messages, currentSessionId, userId = 
         stored[currentSessionId] = nextSession;
         writeLocalSessionsMap(stored);
 
-        await upsertSessionsToCloud([nextSession], userId);
+        const resolvedUserId = await resolveUserId(userId);
+        await upsertSessionsToCloud([nextSession], resolvedUserId);
     } catch (e) {
         console.error('Failed to save session', e);
     }
@@ -154,18 +186,19 @@ export const loadSessionMessagesFromStorage = (sessionId) => {
 
 export const loadSessionsForUser = async (userId = null) => {
     const localSessionsMap = readLocalSessionsMap();
+    const resolvedUserId = await resolveUserId(userId);
 
-    if (!userId) {
+    if (!resolvedUserId) {
         return sortSessions(localSessionsMap);
     }
 
     // Push local cache first so device-local sessions aren't lost when user logs in elsewhere.
-    await upsertSessionsToCloud(Object.values(localSessionsMap), userId);
+    await upsertSessionsToCloud(Object.values(localSessionsMap), resolvedUserId);
 
     let { data, error } = await supabase
         .from('chat_sessions')
         .select('session_id, preview, timestamp, messages, custom_title, updated_at')
-        .eq('user_id', userId)
+        .eq('user_id', resolvedUserId)
         .order('timestamp', { ascending: false });
 
     if (error) {
@@ -173,7 +206,7 @@ export const loadSessionsForUser = async (userId = null) => {
         ({ data, error } = await supabase
             .from('chat_sessions')
             .select('session_id, preview, timestamp, messages, custom_title, updated_at')
-            .eq('user_id', userId));
+            .eq('user_id', resolvedUserId));
     }
 
     if (error) {
@@ -181,7 +214,15 @@ export const loadSessionsForUser = async (userId = null) => {
         ({ data, error } = await supabase
             .from('chat_sessions')
             .select('session_id, preview, messages, updated_at')
-            .eq('user_id', userId));
+            .eq('user_id', resolvedUserId));
+    }
+
+    if (error) {
+        console.warn('Minimal-column load failed, retrying wildcard load', error);
+        ({ data, error } = await supabase
+            .from('chat_sessions')
+            .select('*')
+            .eq('user_id', resolvedUserId));
     }
 
     if (error) {
@@ -192,6 +233,7 @@ export const loadSessionsForUser = async (userId = null) => {
     const merged = { ...localSessionsMap };
     (data || []).forEach((row) => {
         const session = toLocalSession(row);
+        if (!session?.id) return;
         merged[session.id] = session;
     });
 
@@ -205,11 +247,12 @@ export const deleteSessionFromStorage = async (sessionId, userId = null) => {
         delete sessionsMap[sessionId];
         writeLocalSessionsMap(sessionsMap);
 
-        if (userId) {
+        const resolvedUserId = await resolveUserId(userId);
+        if (resolvedUserId) {
             const { error } = await supabase
                 .from('chat_sessions')
                 .delete()
-                .eq('user_id', userId)
+                .eq('user_id', resolvedUserId)
                 .eq('session_id', sessionId);
             if (error) {
                 console.error('Failed to delete cloud session', error);
@@ -230,7 +273,8 @@ export const renameSessionInStorage = async (sessionId, newName, userId = null) 
         sessionsMap[sessionId].timestamp = Date.now();
         writeLocalSessionsMap(sessionsMap);
 
-        if (userId) {
+        const resolvedUserId = await resolveUserId(userId);
+        if (resolvedUserId) {
             let { error } = await supabase
                 .from('chat_sessions')
                 .update({
@@ -239,7 +283,7 @@ export const renameSessionInStorage = async (sessionId, newName, userId = null) 
                     timestamp: sessionsMap[sessionId].timestamp,
                     updated_at: new Date(sessionsMap[sessionId].timestamp).toISOString(),
                 })
-                .eq('user_id', userId)
+                .eq('user_id', resolvedUserId)
                 .eq('session_id', sessionId);
 
             if (error) {
@@ -249,7 +293,7 @@ export const renameSessionInStorage = async (sessionId, newName, userId = null) 
                         preview: newName,
                         updated_at: new Date(sessionsMap[sessionId].timestamp).toISOString(),
                     })
-                    .eq('user_id', userId)
+                    .eq('user_id', resolvedUserId)
                     .eq('session_id', sessionId));
             }
 

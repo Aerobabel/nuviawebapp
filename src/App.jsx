@@ -84,6 +84,31 @@ function App() {
     }
   }, [currentView, refreshSessions]);
 
+  useEffect(() => {
+    if (currentView !== 'chat') return;
+
+    const handleFocusRefresh = () => {
+      refreshSessions().catch((err) => console.error('Failed to refresh sessions on focus', err));
+    };
+
+    const handleVisibilityRefresh = () => {
+      if (document.visibilityState === 'visible') handleFocusRefresh();
+    };
+
+    window.addEventListener('focus', handleFocusRefresh);
+    document.addEventListener('visibilitychange', handleVisibilityRefresh);
+    return () => {
+      window.removeEventListener('focus', handleFocusRefresh);
+      document.removeEventListener('visibilitychange', handleVisibilityRefresh);
+    };
+  }, [currentView, refreshSessions]);
+
+  useEffect(() => {
+    if (currentView === 'chat' && isSidebarOpen) {
+      refreshSessions().catch((err) => console.error('Failed to refresh sessions on sidebar open', err));
+    }
+  }, [currentView, isSidebarOpen, refreshSessions]);
+
   const handleSelectAuth = async (type) => {
     if (type === 'guest') {
       if (!currentSessionId) setCurrentSessionId(crypto.randomUUID());
@@ -112,7 +137,23 @@ function App() {
       return;
     }
 
-    // Keep current fallback behavior for providers not wired yet (e.g. Apple)
+    if (type === 'apple') {
+      const { error } = await supabase.auth.signInWithOAuth({
+        provider: 'apple',
+        options: {
+          redirectTo: window.location.origin,
+          scopes: 'name email',
+        },
+      });
+
+      if (error) {
+        console.error('Apple sign-in failed:', error.message);
+        alert(error.message);
+      }
+      return;
+    }
+
+    // Keep current fallback behavior for any provider not wired yet
     setCurrentView('phone');
   };
 
