@@ -54,25 +54,40 @@ const toCloudSession = (session, userId) => ({
     updated_at: new Date(session.timestamp).toISOString(),
 });
 
+const toCloudSessionMinimal = (session, userId) => ({
+    user_id: userId,
+    session_id: session.id,
+    preview: session.preview,
+    messages: session.messages,
+    updated_at: new Date(session.timestamp || Date.now()).toISOString(),
+});
+
 const upsertSessionsToCloud = async (sessions, userId) => {
     if (!userId || !sessions.length) return;
-    const payload = sessions.map((session) => toCloudSession(session, userId));
+    const fullPayload = sessions.map((session) => toCloudSession(session, userId));
+    const minimalPayload = sessions.map((session) => toCloudSessionMinimal(session, userId));
 
     let { error } = await supabase
         .from('chat_sessions')
-        .upsert(payload, { onConflict: 'user_id,session_id' });
+        .upsert(fullPayload, { onConflict: 'user_id,session_id' });
     if (!error) return;
 
-    console.warn('chat_sessions composite upsert failed, retrying session_id upsert', error);
+    console.warn('chat_sessions full upsert failed, retrying minimal composite upsert', error);
     ({ error } = await supabase
         .from('chat_sessions')
-        .upsert(payload, { onConflict: 'session_id' }));
+        .upsert(minimalPayload, { onConflict: 'user_id,session_id' }));
     if (!error) return;
 
-    console.warn('chat_sessions upsert fallback failed, retrying insert/update loop', error);
+    console.warn('chat_sessions minimal composite upsert failed, retrying minimal session_id upsert', error);
+    ({ error } = await supabase
+        .from('chat_sessions')
+        .upsert(minimalPayload, { onConflict: 'session_id' }));
+    if (!error) return;
+
+    console.warn('chat_sessions upsert fallback failed, retrying minimal insert/update loop', error);
 
     for (const session of sessions) {
-        const row = toCloudSession(session, userId);
+        const row = toCloudSessionMinimal(session, userId);
         const { error: insertError } = await supabase
             .from('chat_sessions')
             .insert(row);
@@ -162,6 +177,14 @@ export const loadSessionsForUser = async (userId = null) => {
     }
 
     if (error) {
+        console.warn('Full-column load failed, retrying minimal-column load', error);
+        ({ data, error } = await supabase
+            .from('chat_sessions')
+            .select('session_id, preview, messages, updated_at')
+            .eq('user_id', userId));
+    }
+
+    if (error) {
         console.error('Failed to load cloud sessions', error);
         return sortSessions(localSessionsMap);
     }
@@ -208,7 +231,7 @@ export const renameSessionInStorage = async (sessionId, newName, userId = null) 
         writeLocalSessionsMap(sessionsMap);
 
         if (userId) {
-            const { error } = await supabase
+            let { error } = await supabase
                 .from('chat_sessions')
                 .update({
                     preview: newName,
@@ -218,6 +241,18 @@ export const renameSessionInStorage = async (sessionId, newName, userId = null) 
                 })
                 .eq('user_id', userId)
                 .eq('session_id', sessionId);
+
+            if (error) {
+                ({ error } = await supabase
+                    .from('chat_sessions')
+                    .update({
+                        preview: newName,
+                        updated_at: new Date(sessionsMap[sessionId].timestamp).toISOString(),
+                    })
+                    .eq('user_id', userId)
+                    .eq('session_id', sessionId));
+            }
+
             if (error) {
                 console.error('Failed to rename cloud session', error);
             }
