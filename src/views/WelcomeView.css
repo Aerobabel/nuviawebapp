@@ -1,0 +1,102 @@
+.welcome-container {
+    width: 100%;
+    height: 100%;
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-size: cover;
+    background-position: center;
+    /* we will inject the background image dynamically or use a class */
+    z-index: 10;
+}
+
+/* Fallback background if image fails */
+.welcome-container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(0, 0, 0, 0.2) 0%, rgba(0, 0, 0, 0.6) 100%);
+    z-index: -1;
+}
+
+.welcome-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-end;
+    height: 100%;
+    width: 100%;
+    max-width: 500px;
+    padding-bottom: 6vh;
+}
+
+/* Based on "Cyberpunk Glass" and the user's images */
+.auth-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    width: 320px;
+    margin-bottom: 0;
+    /* The buttons in the image look like individual pills, not a panel backing,
+     wait, checking the image... yeah, they are stacked semi-transparent pill buttons */
+}
+
+.auth-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    position: relative;
+    padding: 16px 24px;
+    border-radius: var(--radius-pill);
+    background: rgba(255, 255, 255, 0.05);
+    /* very subtle glass */
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: var(--text-primary);
+    font-size: 14px;
+    font-weight: 500;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transition: var(--transition);
+}
+
+.auth-btn svg {
+    position: absolute;
+    left: 24px;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.auth-btn:hover {
+    background: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    border-color: rgba(255, 255, 255, 0.3);
+}
+
+.auth-btn span {
+    width: 100%;
+    text-align: center;
+    padding-left: 0;
+}
+
+/* Animation for the panel sliding up */
+.panel-fade-in {
+    animation: slideUp 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    opacity: 0;
+    transform: translateY(20px);
+    animation-delay: 0.2s;
+}
+
+@keyframes slideUp {
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}

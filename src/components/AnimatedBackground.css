@@ -1,0 +1,74 @@
+.animated-bg-container {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    overflow: hidden;
+    background: #0E141C;
+}
+
+.sky-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-image: url('/sky.png');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    z-index: 1;
+}
+
+.rock-layer {
+    position: absolute;
+    bottom: -10vh;
+    /* Allow some bleed down for the animation */
+    left: 0;
+    width: 100%;
+    height: 110vh;
+    background-image: url('/rock.png');
+    background-size: cover;
+    background-position: center bottom;
+    background-repeat: no-repeat;
+    z-index: 3;
+}
+
+.bg-overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(to bottom, rgba(8, 12, 18, 0.16) 0%, rgba(8, 12, 18, 0.62) 100%);
+    z-index: 4;
+    pointer-events: none;
+}
+
+.animated-logo-wrapper {
+    position: absolute;
+    top: 41%;
+    transform: translateY(-50%);
+    left: 0;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    pointer-events: none;
+}
+
+.nuvia-bg-logo {
+    width: 520px;
+    max-width: 90vw;
+    height: auto;
+    mix-blend-mode: screen;
+    opacity: 0.78;
+    filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.28));
+}
+
+.nuvia-bg-logo path {
+    fill: #d5ecfb;
+}

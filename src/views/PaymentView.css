@@ -1,0 +1,166 @@
+.payment-view-container {
+    width: 100%;
+    height: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    position: relative;
+}
+
+/* Header */
+.payment-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 32px;
+}
+
+.header-icon-btn {
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: white;
+}
+
+.payment-title-pill {
+    padding: 8px 24px;
+    border-radius: var(--radius-pill);
+    font-size: 15px;
+    font-weight: 500;
+}
+
+/* List Items */
+.payment-list {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex: 1;
+}
+
+.payment-list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    border-radius: 16px;
+    background: rgba(18, 20, 24, 0.6);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.payment-item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.payment-item-type {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--text-primary);
+}
+
+.payment-item-detail {
+    font-size: 13px;
+    color: var(--text-secondary);
+}
+
+.payment-item-action {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.payment-item-price {
+    font-size: 15px;
+    font-weight: 700;
+    color: white;
+}
+
+.pay-now-btn {
+    padding: 8px 16px;
+    font-size: 13px;
+    border-radius: var(--radius-pill);
+    background: #0b66c2;
+}
+
+/* Footer string button */
+.payment-footer {
+    margin-top: 32px;
+    width: 100%;
+}
+
+.payment-close-btn {
+    width: 100%;
+    padding: 16px;
+    border-radius: 16px;
+    background: rgba(18, 20, 24, 0.8);
+    color: white;
+    font-weight: 500;
+    font-size: 16px;
+    text-align: center;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.payment-close-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+/* Custom Webview Simulator */
+.webview-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+}
+
+.webview-domain {
+    padding: 8px 24px;
+    border-radius: var(--radius-pill);
+    font-size: 14px;
+    font-weight: 500;
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.webview-content {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #111;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 24px;
+    position: relative;
+}
+
+.webview-placeholder {
+    text-align: center;
+    color: var(--text-secondary);
+}
+
+.webview-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 16px;
+}
+
+.footer-nav {
+    display: flex;
+    gap: 16px;
+}
+
+.footer-actions {
+    display: flex;
+    gap: 20px;
+}
+
+.footer-icon {
+    background: transparent;
+    color: var(--text-secondary);
+    width: 40px;
+    height: 40px;
+}

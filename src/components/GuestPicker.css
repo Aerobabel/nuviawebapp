@@ -1,0 +1,70 @@
+.picker-modal {
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    padding: 24px;
+    width: 100%;
+    max-width: 500px;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 600;
+}
+
+.picker-body {
+    flex-grow: 1;
+    overflow-y: auto;
+    margin: 16px 0;
+    padding-right: 8px;
+}
+
+.picker-section {
+    margin-bottom: 24px;
+}
+
+.picker-label {
+    font-size: 16px;
+    font-weight: 500;
+    color: var(--text-secondary);
+    margin-bottom: 12px;
+}
+
+.scroll-row {
+    display: flex;
+    gap: 12px;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    scrollbar-width: none;
+}
+
+.scroll-row::-webkit-scrollbar {
+    display: none;
+}
+
+.circle-btn {
+    min-width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background: transparent;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: var(--text-primary);
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: var(--transition);
+}
+
+.circle-btn.selected {
+    background: var(--accent-color);
+    border-color: var(--accent-color);
+    font-weight: bold;
+}
+
+.round-btn {
+    border-radius: 30px;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: bold;
+}

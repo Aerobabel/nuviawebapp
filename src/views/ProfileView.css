@@ -1,0 +1,116 @@
+.profile-container {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    max-width: 800px;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.profile-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 32px;
+}
+
+.profile-card {
+    display: flex;
+    align-items: center;
+    padding: 24px;
+    margin-bottom: 32px;
+}
+
+.profile-avatar-large {
+    width: 80px;
+    height: 80px;
+    border-radius: 20px;
+    background: var(--accent-color);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: white;
+    margin-right: 24px;
+}
+
+.profile-text {
+    flex: 1;
+}
+
+.profile-name-large {
+    font-size: 24px;
+    margin-bottom: 4px;
+    color: var(--text-primary);
+}
+
+.profile-email {
+    font-size: 15px;
+    color: var(--text-secondary);
+    margin-bottom: 2px;
+}
+
+.profile-phone {
+    font-size: 14px;
+    color: var(--text-muted);
+}
+
+.options-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 40px;
+}
+
+.option-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 20px;
+    border-radius: var(--radius-pill);
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--text-tertiary);
+}
+
+.option-btn:hover {
+    background: rgba(255, 255, 255, 0.1);
+}
+
+.option-left {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.option-icon {
+    font-size: 20px;
+    color: var(--text-secondary);
+}
+
+.option-label {
+    font-size: 16px;
+    color: var(--text-primary);
+    font-weight: 500;
+}
+
+.signout-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px 20px;
+    border-radius: var(--radius-pill);
+    border-color: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    font-weight: 600;
+    font-size: 16px;
+    cursor: pointer;
+    align-self: flex-start;
+    transition: var(--transition);
+}
+
+.signout-btn:hover {
+    background: rgba(239, 68, 68, 0.1);
+}
