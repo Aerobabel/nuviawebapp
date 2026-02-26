@@ -21,13 +21,25 @@ const writeLocalSessionsMap = (sessionsMap) => {
 const sortSessions = (sessionsMap) =>
     Object.values(sessionsMap).sort((a, b) => b.timestamp - a.timestamp);
 
+const normalizeTimestamp = (value, fallbackUpdatedAt = '') => {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+
+    if (typeof value === 'string') {
+        const asNumber = Number(value);
+        if (Number.isFinite(asNumber) && asNumber > 0) return asNumber;
+
+        const parsedValue = Date.parse(value);
+        if (!Number.isNaN(parsedValue)) return parsedValue;
+    }
+
+    const parsedUpdatedAt = Date.parse(fallbackUpdatedAt || '');
+    return Number.isNaN(parsedUpdatedAt) ? Date.now() : parsedUpdatedAt;
+};
+
 const toLocalSession = (row) => ({
     id: row.session_id,
     preview: row.preview || 'New Trip...',
-    timestamp:
-        typeof row.timestamp === 'number'
-            ? row.timestamp
-            : Date.parse(row.updated_at || '') || Date.now(),
+    timestamp: normalizeTimestamp(row.timestamp, row.updated_at),
     messages: Array.isArray(row.messages) ? row.messages : [],
     customTitle: !!row.custom_title,
 });
@@ -45,11 +57,37 @@ const toCloudSession = (session, userId) => ({
 const upsertSessionsToCloud = async (sessions, userId) => {
     if (!userId || !sessions.length) return;
     const payload = sessions.map((session) => toCloudSession(session, userId));
-    const { error } = await supabase
+
+    let { error } = await supabase
         .from('chat_sessions')
         .upsert(payload, { onConflict: 'user_id,session_id' });
-    if (error) {
-        console.error('Failed to sync sessions to cloud', error);
+    if (!error) return;
+
+    console.warn('chat_sessions composite upsert failed, retrying session_id upsert', error);
+    ({ error } = await supabase
+        .from('chat_sessions')
+        .upsert(payload, { onConflict: 'session_id' }));
+    if (!error) return;
+
+    console.warn('chat_sessions upsert fallback failed, retrying insert/update loop', error);
+
+    for (const session of sessions) {
+        const row = toCloudSession(session, userId);
+        const { error: insertError } = await supabase
+            .from('chat_sessions')
+            .insert(row);
+
+        if (!insertError) continue;
+
+        const { error: updateError } = await supabase
+            .from('chat_sessions')
+            .update(row)
+            .eq('user_id', userId)
+            .eq('session_id', session.id);
+
+        if (updateError) {
+            console.error('Failed to sync session row to cloud', updateError);
+        }
     }
 };
 
@@ -109,11 +147,19 @@ export const loadSessionsForUser = async (userId = null) => {
     // Push local cache first so device-local sessions aren't lost when user logs in elsewhere.
     await upsertSessionsToCloud(Object.values(localSessionsMap), userId);
 
-    const { data, error } = await supabase
+    let { data, error } = await supabase
         .from('chat_sessions')
         .select('session_id, preview, timestamp, messages, custom_title, updated_at')
         .eq('user_id', userId)
         .order('timestamp', { ascending: false });
+
+    if (error) {
+        console.warn('Ordered load failed, retrying without order', error);
+        ({ data, error } = await supabase
+            .from('chat_sessions')
+            .select('session_id, preview, timestamp, messages, custom_title, updated_at')
+            .eq('user_id', userId));
+    }
 
     if (error) {
         console.error('Failed to load cloud sessions', error);

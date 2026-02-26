@@ -54,7 +54,7 @@ export default function ChatView({ sessionId, onOpenTripDetails, onOpenPayment, 
     useEffect(() => {
         let isMounted = true;
         const persist = async () => {
-            if (messages.length <= 1) return;
+            if (messages.length <= 1 || !sessionId) return;
             await saveSessionToStorage(messages, sessionId, userId);
             if (isMounted) {
                 await onSessionUpdated?.();

@@ -1,3 +1,5 @@
+import { useState } from 'react';
+import { supabase } from '../lib/supabase';
 import './ProfileView.css';
 
 const PROFILE_OPTIONS = [
@@ -8,6 +10,8 @@ const PROFILE_OPTIONS = [
 ];
 
 export default function ProfileView({ onBack, user }) {
+    const [isSigningOut, setIsSigningOut] = useState(false);
+
     const formatName = () => {
         if (!user) return 'Guest';
         return user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'Traveler';
@@ -15,6 +19,25 @@ export default function ProfileView({ onBack, user }) {
 
     const handleAction = (label) => {
         alert(`${label} is under construction on the web version.`);
+    };
+
+    const handleSignOut = async () => {
+        if (isSigningOut) return;
+        if (!user) {
+            onBack?.();
+            return;
+        }
+
+        setIsSigningOut(true);
+        const { error } = await supabase.auth.signOut();
+
+        if (error) {
+            alert(error.message || 'Failed to sign out.');
+            setIsSigningOut(false);
+            return;
+        }
+
+        setIsSigningOut(false);
     };
 
     return (
@@ -50,9 +73,9 @@ export default function ProfileView({ onBack, user }) {
                 ))}
             </div>
 
-            <button className="signout-btn glass-panel fade-in" onClick={() => alert('Sign out clicked')}>
+            <button className="signout-btn glass-panel fade-in" onClick={handleSignOut} disabled={isSigningOut}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#ef4444" strokeWidth="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                <span>Sign Out</span>
+                <span>{isSigningOut ? 'Signing Out...' : 'Sign Out'}</span>
             </button>
         </div>
     );

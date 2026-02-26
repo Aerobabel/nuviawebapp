@@ -25,14 +25,20 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         setUser(session.user);
+        setCurrentSessionId((prev) => prev || crypto.randomUUID());
         setCurrentView('chat');
       }
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       setUser(session?.user ?? null);
-      if (session?.user) setCurrentView('chat');
-      else setCurrentView('welcome');
+      if (session?.user) {
+        setCurrentSessionId((prev) => prev || crypto.randomUUID());
+        setCurrentView('chat');
+      } else {
+        setCurrentSessionId(null);
+        setCurrentView('welcome');
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -61,8 +67,14 @@ function App() {
   const refreshSessions = useCallback(async () => {
     const loaded = await loadSessionsForUser(user?.id || null);
     setSessions(loaded);
-    setCurrentSessionId((prev) => prev || loaded[0]?.id || crypto.randomUUID());
+    setCurrentSessionId((prev) => loaded[0]?.id || prev || crypto.randomUUID());
   }, [user?.id]);
+
+  useEffect(() => {
+    if (currentView === 'chat' && !currentSessionId) {
+      setCurrentSessionId(crypto.randomUUID());
+    }
+  }, [currentView, currentSessionId]);
 
   // Reload sessions when entering chat or when auth identity changes
   useEffect(() => {
