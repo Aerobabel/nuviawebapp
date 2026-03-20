@@ -207,6 +207,24 @@
     background: rgba(255, 255, 255, 0.08);
 }
 
+.event-card.has-map {
+    position: relative;
+}
+
+.event-card.has-map::after {
+    content: 'Map';
+    margin-left: 14px;
+    padding: 6px 10px;
+    border-radius: var(--radius-pill);
+    border: 1px solid rgba(11, 102, 194, 0.35);
+    background: rgba(11, 102, 194, 0.15);
+    color: var(--text-primary);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+}
+
 .event-icon {
     width: 44px;
     height: 44px;
@@ -244,6 +262,125 @@
     font-size: 13px;
     color: var(--text-tertiary);
     margin-left: 12px;
+}
+
+.event-map-shell {
+    margin-top: 12px;
+    overflow: hidden;
+}
+
+.event-map-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    padding: 16px 16px 0;
+}
+
+.event-map-eyebrow {
+    color: var(--text-muted);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+}
+
+.event-map-title {
+    margin-top: 6px;
+    color: var(--text-primary);
+    font-size: 15px;
+    font-weight: 600;
+}
+
+.event-map-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 104px;
+    padding: 10px 14px;
+    border-radius: var(--radius-pill);
+    background: rgba(11, 102, 194, 0.16);
+    border: 1px solid rgba(11, 102, 194, 0.38);
+    color: var(--text-primary);
+    font-size: 13px;
+    font-weight: 700;
+    transition: var(--transition);
+}
+
+.event-map-link:hover {
+    background: rgba(11, 102, 194, 0.24);
+    border-color: rgba(11, 102, 194, 0.5);
+}
+
+.event-map-frame {
+    position: relative;
+    height: 240px;
+    margin: 16px;
+    border-radius: 20px;
+    overflow: hidden;
+    background: #0f1722;
+    border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.event-map-frame iframe {
+    width: 100%;
+    height: 100%;
+    border: 0;
+    opacity: 0.92;
+    filter: grayscale(0.08) contrast(1.05);
+    pointer-events: none;
+}
+
+.event-map-frame::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        linear-gradient(180deg, rgba(10, 14, 22, 0.04) 0%, rgba(10, 14, 22, 0.22) 100%),
+        radial-gradient(circle at top right, rgba(11, 102, 194, 0.16), transparent 38%);
+    pointer-events: none;
+}
+
+.event-map-overlay {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+.event-map-svg {
+    width: 100%;
+    height: 100%;
+}
+
+.event-map-svg line {
+    stroke: #3e6fff;
+    stroke-width: 2.6;
+    stroke-linecap: round;
+    filter: drop-shadow(0 0 10px rgba(62, 111, 255, 0.55));
+}
+
+.event-map-marker {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    margin-left: -14px;
+    margin-top: -14px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.04em;
+    background: rgba(15, 23, 34, 0.94);
+    border: 2px solid rgba(255, 255, 255, 0.9);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.35);
+}
+
+.event-map-marker.single,
+.event-map-marker.end {
+    background: #3e6fff;
 }
 
 /* What included */
@@ -370,4 +507,83 @@
     padding: 16px 32px;
     font-size: 16px;
     font-weight: 700;
+}
+
+@media (max-width: 768px) {
+    .trip-header {
+        gap: 12px;
+        padding: 16px;
+    }
+
+    .trip-header-pill {
+        max-width: calc(100vw - 136px);
+        padding: 10px 18px;
+        font-size: 14px;
+    }
+
+    .trip-main-image {
+        width: calc(100% - 32px);
+        height: 240px;
+    }
+
+    .trip-info-section {
+        padding: 20px 16px;
+    }
+
+    .trip-title-row {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .trip-location-title {
+        font-size: 24px;
+    }
+
+    .event-card {
+        align-items: flex-start;
+    }
+
+    .event-card.has-map::after {
+        display: none;
+    }
+
+    .event-duration {
+        margin-left: 8px;
+        white-space: nowrap;
+    }
+
+    .event-map-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .event-map-link {
+        width: 100%;
+    }
+
+    .event-map-frame {
+        height: 220px;
+        margin: 12px;
+    }
+
+    .trip-footer {
+        flex-direction: column;
+        gap: 16px;
+        align-items: stretch;
+        padding: 16px;
+    }
+
+    .trip-footer-price {
+        margin-right: 0;
+    }
+
+    .trip-footer-actions {
+        width: 100%;
+    }
+
+    .trip-footer-actions .btn {
+        flex: 1;
+        padding: 14px 18px;
+    }
 }
